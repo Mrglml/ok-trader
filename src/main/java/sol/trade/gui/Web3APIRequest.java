@@ -8,6 +8,7 @@ import okx.trade.gui.utils.SSLUtil;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -19,8 +20,13 @@ public class Web3APIRequest {
             Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(Constant.PROXY, Constant.PORT));
             SSLUtil.trustAllCertificates();
             // 设置 API URL
-            String urlString = "https://web3.okx.com/priapi/v1/holder-intelligence/cluster/info?chainId=501&chainIndex=1&tokenAddress=3oQwNvAfZMuPWjVPC12ukY7RPA9JiGwLod6Pr4Lkpump&walletAddress=0x0c9b5750308e385223474dc53e3d0365584371c9&t=1752045052367";
-
+            String geeked = "EbW1bx4NdjH4aTTUNAP9PRBYTu6qJE12d9vUhvHbpump";
+            String poke6900 = "3oQwNvAfZMuPWjVPC12ukY7RPA9JiGwLod6Pr4Lkpump";
+            String RICO = "JBahfY5TSFaBooJ5N186Zd9JNvVgm9iHRJSUFT5KqNxA";
+            String shiyo = "EBCqxfSMVSJPDGFLcf2yAfQoeLJRD1z8VbEUemZSbonk";
+            String solami = "5c74v6Px9RKwdGWCfqLGfEk7UZfE3Y4qJbuYrLbVG63V";
+            String tokenAddress = solami;
+            String urlString = "https://web3.okx.com/priapi/v1/holder-intelligence/cluster/info?chainId=501&chainIndex=1&tokenAddress=" + tokenAddress + "&t=" + System.currentTimeMillis();
             // 创建 URL 对象
             URL url = new URL(urlString);
 
@@ -79,6 +85,8 @@ public class Web3APIRequest {
                 // 输出响应内容
                 JSONObject jsonResponse = JSON.parseObject(response.toString());
                 JSONObject data = jsonResponse.getJSONObject("data");
+                Double avgCost = 0.0;
+                Double addressCount = 0.0;
 
                 if (data != null) {
                     JSONArray clusterList = data.getJSONArray("clusterList");
@@ -90,15 +98,24 @@ public class Web3APIRequest {
                         if ("Rank-1".equals(clusterName)) {
                             JSONArray children = cluster.getJSONArray("children");
                             System.out.println("Found Rank-1 cluster with " + children.size() + " addresses:");
-
+                            addressCount = cluster.getDouble("addressCount");
                             for (int j = 0; j < children.size(); j++) {
                                 JSONObject child = children.getJSONObject(j);
                                 String address = child.getString("address");
-                                System.out.println(address+":" + "poke"+(j+1));
+                                Double avgCost1 = child.getDouble("avgCost");
+                                if (avgCost1 == null) {
+                                    addressCount = addressCount-1;
+                                    continue;
+                                }
+                                avgCost += avgCost1;
+                                System.out.println(address+":" +data.getString("tokenName")+(j+1));
                             }
                         }
                     }
+                    double average = avgCost / addressCount;
+                    System.out.printf("均价（avgCost）: %.20f%n", average);
                 }
+
 
             } else {
                 System.out.println("GET request failed");
