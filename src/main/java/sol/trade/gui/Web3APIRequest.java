@@ -13,6 +13,8 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Web3APIRequest {
     public static void main(String[] args) {
@@ -25,8 +27,10 @@ public class Web3APIRequest {
             String RICO = "JBahfY5TSFaBooJ5N186Zd9JNvVgm9iHRJSUFT5KqNxA";
             String shiyo = "EBCqxfSMVSJPDGFLcf2yAfQoeLJRD1z8VbEUemZSbonk";
             String solami = "5c74v6Px9RKwdGWCfqLGfEk7UZfE3Y4qJbuYrLbVG63V";
-            String tokenAddress = solami;
-            String urlString = "https://web3.okx.com/priapi/v1/holder-intelligence/cluster/info?chainId=501&chainIndex=1&tokenAddress=" + tokenAddress + "&t=" + System.currentTimeMillis();
+            String pwc = "2qachMY68G2oPXt2SYPVSu3SyR1YgiiZFZ1pjJxnxKyi";
+            String memecoin = "4daoTLufDmV3ods48Zh8rymaZKBLtgEvuH9qALYLbonk";
+            String tokenAddress = memecoin;
+            String urlString = "https://web3.okx.com/priapi/v1/dx/market/v2/pnl/top-trader/ranking-list?chainId=501&tokenContractAddress=" + tokenAddress + "&currentUserWalletAddress=0x0c9b5750308e385223474dc53e3d0365584371c9&t=" + System.currentTimeMillis();
             // 创建 URL 对象
             URL url = new URL(urlString);
 
@@ -65,8 +69,10 @@ public class Web3APIRequest {
             connection.setRequestProperty("x-zkdex-env", "0");
 
             // 设置连接和读取超时
-            connection.setConnectTimeout(10000);  // 10秒
-            connection.setReadTimeout(10000);     // 10秒
+            connection.setConnectTimeout(10000);
+            // 10秒
+            connection.setReadTimeout(10000);
+            // 10秒
 
             // 发送请求并获取响应
             int responseCode = connection.getResponseCode();
@@ -85,35 +91,21 @@ public class Web3APIRequest {
                 // 输出响应内容
                 JSONObject jsonResponse = JSON.parseObject(response.toString());
                 JSONObject data = jsonResponse.getJSONObject("data");
-                Double avgCost = 0.0;
-                Double addressCount = 0.0;
-
+                String tokenName = "memeCoin";
                 if (data != null) {
-                    JSONArray clusterList = data.getJSONArray("clusterList");
-
-                    for (int i = 0; i < clusterList.size(); i++) {
-                        JSONObject cluster = clusterList.getJSONObject(i);
-                        String clusterName = cluster.getString("clusterName");
-
-                        if ("Rank-1".equals(clusterName)) {
-                            JSONArray children = cluster.getJSONArray("children");
-                            System.out.println("Found Rank-1 cluster with " + children.size() + " addresses:");
-                            addressCount = cluster.getDouble("addressCount");
-                            for (int j = 0; j < children.size(); j++) {
-                                JSONObject child = children.getJSONObject(j);
-                                String address = child.getString("address");
-                                Double avgCost1 = child.getDouble("avgCost");
-                                if (avgCost1 == null) {
-                                    addressCount = addressCount-1;
-                                    continue;
-                                }
-                                avgCost += avgCost1;
-                                System.out.println(address+":" +data.getString("tokenName")+(j+1));
-                            }
+                    JSONArray holderRankingList = data.getJSONArray("list");
+                    for (int i = 0; i < holderRankingList.size(); i++) {
+                        JSONObject cluster = holderRankingList.getJSONObject(i);
+                        String holderWalletAddress = cluster.getString("holderWalletAddress");
+                        double realizedProfit = cluster.getDouble("realizedProfit");
+                        double realizedProfitPercentage = cluster.getDouble("realizedProfitPercentage");
+                        if (realizedProfitPercentage < 500 && realizedProfit < 20000) {
+                            continue;
                         }
+                        System.out.println(holderWalletAddress+":"+tokenName+(i+1));
+                        System.out.println("利润：" + realizedProfit+"  "+"利润百分比：" + realizedProfitPercentage);
                     }
-                    double average = avgCost / addressCount;
-                    System.out.printf("均价（avgCost）: %.20f%n", average);
+
                 }
 
 
