@@ -9,6 +9,7 @@ import okx.trade.gui.utils.SSLUtil;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -97,12 +98,13 @@ public class Web3APIRequest {
                     for (int i = 0; i < holderRankingList.size(); i++) {
                         JSONObject cluster = holderRankingList.getJSONObject(i);
                         String holderWalletAddress = cluster.getString("holderWalletAddress");
-                        double realizedProfit = cluster.getDouble("realizedProfit");
-                        double realizedProfitPercentage = cluster.getDouble("realizedProfitPercentage");
-                        if (realizedProfitPercentage < 500 && realizedProfit < 20000) {
+                        BigDecimal realizedProfit = cluster.getBigDecimal("realizedProfit");
+                        BigDecimal realizedProfitPercentage = cluster.getBigDecimal("realizedProfitPercentage");
+                        if (realizedProfitPercentage.compareTo(BigDecimal.valueOf(1000)) < 0){
                             continue;
                         }
-                        System.out.println(holderWalletAddress+":"+tokenName+(i+1));
+                        System.out.println(holderWalletAddress+":"+tokenName+(i+1)+"-"+realizedProfitPercentage.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)+"倍");
+//                        System.out.println("利润：" + realizedProfit+"  "+"利润百分比：" + realizedProfitPercentage);
                     }
 
                 }
@@ -113,9 +115,6 @@ public class Web3APIRequest {
             }
         } catch (Exception e) {
             e.printStackTrace();
-
-
-
         }
     }
 }
