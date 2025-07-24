@@ -103,7 +103,6 @@ public class Web3APIRequest {
                             continue;
                         }
                         System.out.println(holderWalletAddress+":"+tokenName+(i+1));
-                        System.out.println("利润：" + realizedProfit+"  "+"利润百分比：" + realizedProfitPercentage);
                     }
 
                 }
@@ -114,6 +113,9 @@ public class Web3APIRequest {
             }
         } catch (Exception e) {
             e.printStackTrace();
+
+
+
         }
     }
 }
